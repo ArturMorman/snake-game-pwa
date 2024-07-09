@@ -7,15 +7,9 @@ import App from '../components/snake/App'
 const IndexPage = () => (
   <Layout>
 
-    <div
-      className={`game`}
-      style={{
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
+    <div className={`game`} >
 
-      <div
+      {/* <div
         style={{
           position: 'absolute',
           left: '4px',
@@ -26,7 +20,7 @@ const IndexPage = () => (
           zIndex: '0'
         }}
       >
-        {/* <StaticImage
+        <StaticImage
           src="../assets/images/snake-real.jpg"
           loading="eager"
           width={1200}
@@ -41,21 +35,11 @@ const IndexPage = () => (
             lineHeight: '0',
             minHeight: '100%'
           }}
-        /> */}
-      </div>
+        />
+      </div> */}
 
 
-      <div
-        className={`AppWrap`}
-        style={{
-          position: 'relative',
-          left: '0',
-          top: '0',
-          // width:'100%',
-          // height:'100%',
-          zIndex: '10'
-        }}
-      >
+      <div className={`appWrap`} >
         <App />
       </div>
 

@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react"
 import { useInterval } from "./useInterval"
 import { StaticImage } from "gatsby-plugin-image"
-import * as styles from "../index.module.css"
 import {
   CANVAS_SIZE,
   SNAKE_START,
   APPLE_START,
   SCALE,
   SPEED,
+  SPEED_GAIN,
+  SPEED_TRESHOLD,
   DIRECTIONS
 } from './constants'
 import {
@@ -22,6 +23,7 @@ const App = () => {
   const gamePadRef = useRef(null)
   const [snake, setSnake] = useState(SNAKE_START)
   const [apple, setApple] = useState(APPLE_START)
+  const [appleCount, setAppleCount] = useState(0)
   const [dir, setDir] = useState([0, -1])
   const [speed, setSpeed] = useState(null)
   const [gameOver, setGameOver] = useState(false)
@@ -39,17 +41,18 @@ const App = () => {
   const endGame = () => {
     setSpeed(null)
     setGameOver(true)
+    setAppleCount(0)
   }
 
-  const moveSnake = ( { keyCode } ) => {
-    if( keyCode >= 37 && keyCode <= 40 ) {
+  const moveSnake = ({ keyCode }) => {
+    if (keyCode >= 37 && keyCode <= 40) {
       // console.log(DIRECTIONS[keyCode].toString())
       // console.log(dir.toString())
       // console.log(DIRECTIONS[keyCode].toString() === dir.toString())
       // console.log(dir.filter( n => n !== 0 )[0] * -1)
       // console.log(DIRECTIONS[keyCode].filter( n => n !== 0 )[0])
       // console.log(dir.filter( n => n !== 0 )[0] * -1 !== DIRECTIONS[keyCode].filter( n => n !== 0 )[0])
-      ( 
+      (
         // DIRECTIONS[keyCode].toString() !== dir.toString() 
 
 
@@ -61,35 +64,37 @@ const App = () => {
         true
 
 
-      ) && setDir( DIRECTIONS[keyCode] )
+      ) && setDir(DIRECTIONS[keyCode])
     }
   }
 
-  const createApple = () => apple.map( (_, i) => Math.floor( Math.random() * (CANVAS_SIZE[i]) / SCALE ) )
+  const createApple = () => apple.map((_, i) => Math.floor(Math.random() * (CANVAS_SIZE[i]) / SCALE))
 
   const checkCollision = (piece, snk = snake) => {
-    if(
+    if (
       piece[0] * SCALE >= CANVAS_SIZE[0]
       || piece[0] < 0
       || piece[1] * SCALE >= CANVAS_SIZE[1]
       || piece[1] < 0
-    ) 
-    return true
+    )
+      return true
 
-    for(const segment of snk) {
-      if( piece[0] === segment[0] && piece[1] === segment[1] ) return true
+    for (const segment of snk) {
+      if (piece[0] === segment[0] && piece[1] === segment[1]) return true
     }
 
     return false
   }
 
   const checkAppleCollision = newSnake => {
-    if( newSnake[0][0] === apple[0] && newSnake[0][1] === apple[1] ) {
+    if (newSnake[0][0] === apple[0] && newSnake[0][1] === apple[1]) {
       let newApple = createApple()
-      while( checkCollision(newApple, newSnake) ) {
+      while (checkCollision(newApple, newSnake)) {
         newApple = createApple()
       }
       setApple(newApple)
+      setAppleCount(prev => prev + 1)
+      setSpeed(prev => prev > SPEED_TRESHOLD ? prev - SPEED_GAIN : prev)
       return true
     }
     return false
@@ -105,10 +110,10 @@ const App = () => {
 
     snakeCopy.unshift(newSnakeHead)
 
-    if( checkCollision(newSnakeHead) ) endGame()
+    if (checkCollision(newSnakeHead)) endGame()
 
     // snakeCopy.pop()
-    if( !checkAppleCollision(snakeCopy) ) snakeCopy.pop()
+    if (!checkAppleCollision(snakeCopy)) snakeCopy.pop()
 
     setSnake(snakeCopy)
   }
@@ -138,12 +143,12 @@ const App = () => {
 
   // console.log('__DIR: ', dir)
   // console.log(DIRECTIONS)
-  
 
-  return(
+
+  return (
     <>
 
-      <div className={`snakeLogo ${styles.textCenter} ${gameOver ? 'gameOver' : ''}`}>
+      <div className={`snakeLogo ${gameOver ? 'gameOver' : ''}`}>
         <StaticImage
           src="../assets/images/snake-icon.png"
           loading="eager"
@@ -151,11 +156,11 @@ const App = () => {
           quality={95}
           formats={["auto", "webp", "avif"]}
           alt=""
-          style={{ marginBottom: `var(--space-3)` }}
         />
       </div>
-    
+
       <div
+        className={`canvasWrap`}
         role="button"
         tabIndex="0"
         onKeyDown={e => moveSnake(e)}
@@ -164,40 +169,44 @@ const App = () => {
       >
 
         <canvas
-          style={{
-            border: "1px solid black",
-            lineHeight:'0',
-            marginTop: '4px',
-            marginLeft: '4px',
-            boxShadow: '0 0 0 7px rgba(0,0,0,1)',
-            boxSizing: 'border-box'
-          }}
           ref={canvasRef}
           width={`${CANVAS_SIZE[0]}px`}
           height={`${CANVAS_SIZE[1]}px`}
         />
 
-        {gameOver && 
-        <div
-          style={gameOverPop}
-        >
-          {/* GAME OVER! */}
-          B14ch, please...
-        </div>
+        {appleCount &&
+          <div
+            className={`appleCount`}
+          >
+            <span>
+              {appleCount}
+            </span>
+          </div>
+        }
+
+        {gameOver &&
+          <div
+            style={gameOverPop}
+          >
+            {/* GAME OVER! */}
+            You are dead,
+            <br></br>
+            So sad...
+          </div>
         }
 
         {(speed === null) &&
-        <button 
-          onClick={startGame}
-          style={startButton}
-        >
-          START GAME
-        </button>
+          <button
+            onClick={startGame}
+            style={startButton}
+          >
+            START GAME
+          </button>
         }
-        
+
       </div>
 
     </>
   )
-}  
+}
 export default App
